@@ -40,19 +40,6 @@ public class Period {
     private boolean isWithin(Calendar fromDate, 
 			     Calendar toDate,
 			     Calendar now) {
-
-        logger = Logger.getLogger();
-	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-	
-	logger.log(Log.DEBUG, "isWithin(): fromDate = " 
-		    + sdf.format(fromDate.getTime()));
-	logger.log(Log.DEBUG, "isWithin(): toDate   = "
-		    + sdf.format(toDate.getTime()));
-	logger.log(Log.DEBUG, "isWithin(): now      = "
-		    + sdf.format(now.getTime()));
-	logger.log(Log.DEBUG, "now.after(fromDate) = " + now.after(fromDate));
-	logger.log(Log.DEBUG, "now.before(toDate) = " + now.before(toDate));
-
 	if ((now.after(fromDate) == true) && (now.before(toDate) == true)) {
 	    fromDateCurrentPeriod = fromDate;
 	    toDateCurrentPeriod   = toDate;
@@ -134,28 +121,23 @@ public class Period {
 	boolean retval = false;
 	switch (repeat) {
 	case ONCE:
-	    logger.log(Log.DEBUG, "ONCE");
 	    retval = isWithinOnce(now);
 	    break;
 	case EVERY_DAY:
-	    logger.log(Log.DEBUG, "EVERY_DAY");
 	    retval = isWithinEveryDay(now);
 	    break;
 	case EVERY_WEEK:
-	    logger.log(Log.DEBUG, "EVERY_WEEK");
 	    retval = isWithinEveryWeek(now);
 	    break;
 	case EVERY_MONTH:
-	    logger.log(Log.DEBUG, "EVERY_MONTH");
 	    retval = isWithinEveryMonth(now);
 	    break;
 	case EVERY_YEAR:
-	    logger.log(Log.DEBUG, "EVERY_YEAR");
 	    retval = isWithinEveryYear(now);
 	    break;
 	default:
 	    retval = false;
-	    logger.log(Log.DEBUG, "Unknown state in repeat: " + repeat);
+	    logger.log(Log.ERROR, "Unknown state in repeat: " + repeat);
 	    break;
 	}
 	return retval;

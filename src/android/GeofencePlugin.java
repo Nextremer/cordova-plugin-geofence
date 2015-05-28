@@ -105,22 +105,15 @@ public class GeofencePlugin extends CordovaPlugin {
 	    return;
 	}
 
-	Log.d(TAG, "GeofencePlugin#registar(): enter");
-	Log.d(TAG, "GeofencePlugin#registar(): check-1");
 	for (GeoNotification geoNotification : notifications) {
-	    Log.d(TAG, "GeofencePlugin#registar(): check-2");
 	    if (geoNotification.period.isRepeat() == true) {
-		Log.d(TAG, "GeofencePlugin#registar(): check-3");
 		geoNotifications.add(geoNotification);
 	    }
-	    Log.d(TAG, "GeofencePlugin#registar(): check-4");
 	}
-	Log.d(TAG, "GeofencePlugin#registar(): check-5");
 
 	if (geoNotifications.size() > 0) {
 	    geoNotificationManager.addGeoNotifications2(geoNotifications);
 	}
-	Log.d(TAG, "GeofencePlugin#registar(): leave");
     }
 
     private void deviceReady() {

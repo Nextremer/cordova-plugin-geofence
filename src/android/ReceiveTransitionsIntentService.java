@@ -84,13 +84,9 @@ public class ReceiveTransitionsIntentService extends IntentService {
 
 		    if (geoNotification.period.isFiredInCurrentPeriod(now)
 			== true) {
-			logger.log(Log.ERROR, "check-1");
 			notifier.notify(geoNotification.notification);
-			logger.log(Log.ERROR, "check-2");
 		    }
-		    logger.log(Log.ERROR, "check-3");
 		    geoNotifications.add(geoNotification);
-		    logger.log(Log.ERROR, "check-4");
 		}
 
                 if (geoNotifications.size() > 0) {
