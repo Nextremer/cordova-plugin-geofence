@@ -2,6 +2,7 @@ package com.cowbell.cordova.geofence;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import org.apache.cordova.CallbackContext;
 
@@ -26,6 +27,7 @@ public class GeoNotificationManager {
     private List<Geofence> geoFences;
     private PendingIntent pendingIntent;
     private GoogleServiceCommandExecutor googleServiceCommandExecutor;
+    public static Object lock = new Object();
 
     public GeoNotificationManager(Context context) {
         this.context = context;
@@ -91,25 +93,25 @@ public class GeoNotificationManager {
     }
 
     public void addGeoNotifications2(List<GeoNotification> geoNotifications) {
-        List<Geofence> newGeofences = new ArrayList<Geofence>();
-        for (GeoNotification geo : geoNotifications) {
-            geoNotificationStore.setGeoNotification(geo);
-            newGeofences.add(geo.toGeofence());
-        }
-        AddGeofenceCommand geoFenceCmd = new AddGeofenceCommand(context,
-                pendingIntent, newGeofences);
+	List<Geofence> newGeofences = new ArrayList<Geofence>();
+	for (GeoNotification geo : geoNotifications) {
+	    geoNotificationStore.setGeoNotification(geo);
+	    newGeofences.add(geo.toGeofence());
+	}
+	AddGeofenceCommand geoFenceCmd = new AddGeofenceCommand(context,
+		pendingIntent, newGeofences);
 /*
-        if (callback != null) {
+	if (callback != null) {
 	    logger.log(Log.DEBUG, "addGeoNotificatoins2(): check-5");
-            geoFenceCmd.addListener(new IGoogleServiceCommandListener() {
-                @Override
-                public void onCommandExecuted() {
-                    // callback.success();
-                }
-            });
-        }
+	    geoFenceCmd.addListener(new IGoogleServiceCommandListener() {
+		@Override
+		public void onCommandExecuted() {
+		    // callback.success();
+		}
+	    });
+	}
 */
-        googleServiceCommandExecutor.QueueToExecute(geoFenceCmd);
+	googleServiceCommandExecutor.QueueToExecute(geoFenceCmd);
     }
 
     public void removeGeoNotification(String id, final CallbackContext callback) {
@@ -118,21 +120,36 @@ public class GeoNotificationManager {
         removeGeoNotifications(ids, callback);
     }
 
-    public void removeGeoNotifications(List<String> ids,
+    public void removeGeoNotifications(final List<String> ids,
             final CallbackContext callback) {
-        RemoveGeofenceCommand cmd = new RemoveGeofenceCommand(context, ids);
-        if (callback != null) {
-            cmd.addListener(new IGoogleServiceCommandListener() {
-                @Override
-                public void onCommandExecuted() {
-                    callback.success();
-                }
-            });
-        }
-        googleServiceCommandExecutor.QueueToExecute(cmd);
+	logger.log(Log.DEBUG, "removeGeoNotifications(): check-0");
+	RemoveGeofenceCommand cmd = new RemoveGeofenceCommand(context, ids);
+	final CountDownLatch doneSignal = new CountDownLatch(1);
+
+	if (callback != null) {
+	    logger.log(Log.DEBUG, "removeGeoNotifications(): check-1");
+	    cmd.addListener(new IGoogleServiceCommandListener() {
+		@Override
+		public void onCommandExecuted() {
+		    for (String id : ids) {
+			geoNotificationStore.remove(id);
+		    }
+		    logger.log(Log.DEBUG, "removeGeoNotifications(): ids removed.");
+		    callback.success();
+		    doneSignal.countDown();
+		}
+	    });
+	}
+	googleServiceCommandExecutor.QueueToExecute(cmd);
+	try {
+	    doneSignal.await();
+	} catch (InterruptedException ex) {}
+	logger.log(Log.DEBUG, "removeGeoNotifications(): leave");
+/*
         for (String id : ids) {
             geoNotificationStore.remove(id);
         }
+*/
     }
 
     public void removeAllGeoNotifications(final CallbackContext callback) {

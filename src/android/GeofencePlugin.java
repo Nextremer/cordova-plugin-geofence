@@ -45,6 +45,7 @@ public class GeofencePlugin extends CordovaPlugin {
         Log.d(TAG, "GeofencePlugin execute action: " + action + " args: "
                 + args.toString());
 
+	synchronized(GeoNotificationManager.lock) {
         if (action.equals("addOrUpdate")) {
             List<GeoNotification> geoNotifications = new ArrayList<GeoNotification>();
             for (int i = 0; i < args.length(); i++) {
@@ -53,6 +54,17 @@ public class GeofencePlugin extends CordovaPlugin {
                     geoNotifications.add(not);
                 }
             }
+            geoNotificationManager.addGeoNotifications(geoNotifications,
+                    callbackContext);
+        } else if (action.equals("refresh")) {
+            List<GeoNotification> geoNotifications = new ArrayList<GeoNotification>();
+            for (int i = 0; i < args.length(); i++) {
+                GeoNotification not = parseFromJSONObject(args.getJSONObject(i));
+                if (not != null) {
+                    geoNotifications.add(not);
+                }
+            }
+            geoNotificationManager.removeAllGeoNotifications(callbackContext);
             geoNotificationManager.addGeoNotifications(geoNotifications,
                     callbackContext);
         } else if (action.equals("remove")) {
@@ -75,6 +87,7 @@ public class GeofencePlugin extends CordovaPlugin {
         } else {
             return false;
         }
+	}
         return true;
 
     }
