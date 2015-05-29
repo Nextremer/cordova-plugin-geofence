@@ -129,10 +129,10 @@ public class GeoNotificationManager {
                 }
             });
         }
+        googleServiceCommandExecutor.QueueToExecute(cmd);
         for (String id : ids) {
             geoNotificationStore.remove(id);
         }
-        googleServiceCommandExecutor.QueueToExecute(cmd);
     }
 
     public void removeAllGeoNotifications(final CallbackContext callback) {
