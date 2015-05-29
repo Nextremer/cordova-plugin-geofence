@@ -61,44 +61,49 @@ public class ReceiveTransitionsIntentService extends IntentService {
              * geofence or geofences that triggered the transition
              */
         } else {
-            // Get the type of transition (entry or exit)
-            int transitionType = LocationClient.getGeofenceTransition(intent);
-            if ((transitionType == Geofence.GEOFENCE_TRANSITION_ENTER)
-                    || (transitionType == Geofence.GEOFENCE_TRANSITION_EXIT)) {
-                logger.log(Log.DEBUG, "Geofence transition detected");
-                List<Geofence> triggerList = LocationClient
-                        .getTriggeringGeofences(intent);
-                List<GeoNotification> geoNotifications = new ArrayList<GeoNotification>();
-		Calendar now = Calendar.getInstance();
+	    synchronized(GeoNotificationManager.lock) {
+		logger.log(Log.DEBUG, "XXX enter");
+		// Get the type of transition (entry or exit)
+		int transitionType = LocationClient.getGeofenceTransition(intent);
+		if ((transitionType == Geofence.GEOFENCE_TRANSITION_ENTER)
+			|| (transitionType == Geofence.GEOFENCE_TRANSITION_EXIT)) {
+		    logger.log(Log.DEBUG, "Geofence transition detected");
+		    List<Geofence> triggerList = LocationClient
+			    .getTriggeringGeofences(intent);
+		    List<GeoNotification> geoNotifications = new ArrayList<GeoNotification>();
+		    Calendar now = Calendar.getInstance();
 
-                for (Geofence fence : triggerList) {
-                    String fenceId = fence.getRequestId();
-                    GeoNotification geoNotification = store
-                            .getGeoNotification(fenceId);
+		    for (Geofence fence : triggerList) {
+			String fenceId = fence.getRequestId();
+			logger.log(Log.ERROR, "fenceId = " + fenceId);
+			GeoNotification geoNotification = store
+				.getGeoNotification(fenceId);
 
-                    if ((geoNotification == null)
-			|| (geoNotification.notification == null) 
-			|| (geoNotification.period == null)) {
-			continue;
+			if ((geoNotification == null)
+			    || (geoNotification.notification == null) 
+			    || (geoNotification.period == null)) {
+			    continue;
+			}
+
+			if (geoNotification.period.isFiredInCurrentPeriod(now)
+			    == true) {
+			    notifier.notify(geoNotification.notification);
+			}
+			geoNotifications.add(geoNotification);
 		    }
 
-		    if (geoNotification.period.isFiredInCurrentPeriod(now)
-			== true) {
-			notifier.notify(geoNotification.notification);
+		    if (geoNotifications.size() > 0) {
+			List<GeoNotification> reregistrations = 
+				new ArrayList<GeoNotification>();
+			GeofencePlugin.onTransitionReceived(geoNotifications);
+			GeofencePlugin.registar(geoNotifications);
 		    }
-		    geoNotifications.add(geoNotification);
+		} else {
+		    logger.log(Log.ERROR, "Geofence transition error: "
+			    + transitionType);
 		}
-
-                if (geoNotifications.size() > 0) {
-		    List<GeoNotification> reregistrations = 
-			    new ArrayList<GeoNotification>();
-                    GeofencePlugin.onTransitionReceived(geoNotifications);
-                    GeofencePlugin.registar(geoNotifications);
-                }
-            } else {
-                logger.log(Log.ERROR, "Geofence transition error: "
-                        + transitionType);
-            }
+		logger.log(Log.DEBUG, "XXX leave");
+	    }
         }
     }
 }

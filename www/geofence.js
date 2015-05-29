@@ -24,6 +24,13 @@ Geofence.prototype.addOrUpdate = function (geofences, success, error) {
     return execPromise(success, error, 'GeofencePlugin', 'addOrUpdate', geofences);
 };
 
+Geofence.prototype.refresh = function (geofences, success, error) {
+    if (!Array.isArray(geofences)) {
+        geofences = [geofences];
+    }
+    return execPromise(success, error, 'GeofencePlugin', 'refresh', geofences);
+};
+
 /**
  * Initializing geofence plugin
  *
