@@ -9,8 +9,7 @@ import android.util.Log;
 public class Period {
     @Expose public Calendar fromDate;
     @Expose public Calendar toDate;
-    @Expose public Calendar fromDateCurrentPeriod;
-    @Expose public Calendar toDateCurrentPeriod;
+    @Expose public Calendar fromDateNextPeriod;
     @Expose public int repeat;
 
     static final int ONCE        = 0;
@@ -23,13 +22,11 @@ public class Period {
 
     public Period(Calendar fromDate, 
 		  Calendar toDate, 
-		  Calendar fromDateCurrentPeriod, 
-		  Calendar toDateCurrentPeriod, 
+		  Calendar fromDateNextPeriod, 
 		  int repeat) {
 	this.fromDate              = fromDate;
 	this.toDate                = toDate;
-	this.fromDateCurrentPeriod = fromDateCurrentPeriod;
-	this.toDateCurrentPeriod   = toDateCurrentPeriod;
+	this.fromDateNextPeriod    = fromDateNextPeriod;
 	this.repeat                = repeat;
     }
 
@@ -37,140 +34,75 @@ public class Period {
 	return repeat != ONCE;
     }
 
-    private boolean isWithin(Calendar fromDate, 
-			     Calendar toDate,
-			     Calendar now) {
-	if ((now.after(fromDate) == true) && (now.before(toDate) == true)) {
-	    fromDateCurrentPeriod = fromDate;
-	    toDateCurrentPeriod   = toDate;
-	    return true;
+    private void setFromDateNextPeriodDay(Calendar now) {
+	while (this.fromDateNextPeriod.after(now) != true) {
+	    this.fromDateNextPeriod.add(Calendar.DAY_OF_MONTH, 1);
 	}
-	return false;
     }
 
-    private boolean isWithinOnce(Calendar now) {
-	return isWithin(this.fromDate, this.toDate, now);
-    }
-
-    private boolean isWithinEveryDay(Calendar now) {
-	int year, month, day;
-	Calendar fromDate = this.fromDate;
-	Calendar toDate   = this.toDate;
-
-	year  = now.get(Calendar.YEAR);
-	month = now.get(Calendar.MONTH);
-	day   = now.get(Calendar.DAY_OF_MONTH);
-
-	fromDate.set(year, month, day);
-	toDate.set(year, month, day);
-
-	return isWithin(fromDate, toDate, now);
-    }
-
-    private boolean isWithinEveryWeek(Calendar now) {
-	int year, month, day;
-	Calendar fromDate = this.fromDate;
-	Calendar toDate   = this.toDate;
-
-	if (fromDate.get(Calendar.DAY_OF_WEEK) !=
-	    now.get(Calendar.DAY_OF_WEEK)) {
-	    return false;
+    private void setFromDateNextPeriodWeek(Calendar now) {
+	while (this.fromDateNextPeriod.after(now) != true) {
+	    this.fromDateNextPeriod.add(Calendar.DAY_OF_MONTH, 7);
 	}
-
-	year  = now.get(Calendar.YEAR);
-	month = now.get(Calendar.MONTH);
-	day   = now.get(Calendar.DAY_OF_MONTH);
-
-	fromDate.set(year, month, day);
-	toDate.set(year, month, day);
-
-	return isWithin(fromDate, toDate, now);
     }
 
-    private boolean isWithinEveryMonth(Calendar now) {
-	int year, month;
-	Calendar fromDate = this.fromDate;
-	Calendar toDate   = this.toDate;
-
-	year  = now.get(Calendar.YEAR);
-	month = now.get(Calendar.MONTH);
-
-	fromDate.set(Calendar.YEAR, year);
-	fromDate.set(Calendar.MONTH, month);
-	toDate.set(Calendar.YEAR, year);
-	toDate.set(Calendar.MONTH, month);
-
-	return isWithin(fromDate, toDate, now);
+    private void setFromDateNextPeriodMonth(Calendar now) {
+	while (this.fromDateNextPeriod.after(now) != true) {
+	    this.fromDateNextPeriod.add(Calendar.MONTH, 1);
+	}
     }
 
-    private boolean isWithinEveryYear(Calendar now) {
-	int year;
-	Calendar fromDate = this.fromDate;
-	Calendar toDate   = this.toDate;
-
-	year  = now.get(Calendar.YEAR);
-
-	fromDate.set(Calendar.YEAR, year);
-	toDate.set(Calendar.YEAR, year);
-
-	return isWithin(fromDate, toDate, now);
+    private void setFromDateNextPeriodYear(Calendar now) {
+	while (this.fromDateNextPeriod.after(now) != true) {
+	    this.fromDateNextPeriod.add(Calendar.YEAR, 1);
+	}
     }
 
-    private boolean isWithin(Calendar now) {
+    private void setFromDateNextPeriod(Calendar now) {
         Logger logger = Logger.getLogger();
-	boolean retval = false;
 	switch (repeat) {
 	case ONCE:
-	    retval = isWithinOnce(now);
 	    break;
 	case EVERY_DAY:
-	    retval = isWithinEveryDay(now);
+	    setFromDateNextPeriodDay(now);
 	    break;
 	case EVERY_WEEK:
-	    retval = isWithinEveryWeek(now);
+	    setFromDateNextPeriodWeek(now);
 	    break;
 	case EVERY_MONTH:
-	    retval = isWithinEveryMonth(now);
+	    setFromDateNextPeriodMonth(now);
 	    break;
 	case EVERY_YEAR:
-	    retval = isWithinEveryYear(now);
+	    setFromDateNextPeriodYear(now);
 	    break;
 	default:
-	    retval = false;
 	    logger.log(Log.ERROR, "Unknown state in repeat: " + repeat);
 	    break;
 	}
-	return retval;
     }
 
     boolean isFiredInCurrentPeriod(Calendar now) {
         logger = Logger.getLogger();
 
 	SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): fromDateCurrentPeriod = " 
-		    + fromDateCurrentPeriod);
-	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): toDateCurrentPeriod = " 
-		    + toDateCurrentPeriod);
+	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): fromDateNextPeriod = " 
+		    + fromDateNextPeriod);
 	
-	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): fromDateCurrentPeriod = " 
-		    + sdf.format(fromDateCurrentPeriod.getTime()));
-	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): toDateCurrentPeriod   = "
-		    + sdf.format(toDateCurrentPeriod.getTime()));
+	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): fromDateNextPeriod = " 
+		    + sdf.format(fromDateNextPeriod.getTime()));
 	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): now      = "
 		    + sdf.format(now.getTime()));
-	logger.log(Log.DEBUG, "now.after(fromDateCurrentPeriod) = " + now.after(fromDateCurrentPeriod));
-	logger.log(Log.DEBUG, "now.before(toDateCurrentPeriod) = " + now.before(toDateCurrentPeriod));
+	logger.log(Log.DEBUG, "now.after(fromDateNextPeriod) = " 
+		    + now.after(fromDateNextPeriod));
 
-	if ((now.after(fromDateCurrentPeriod) == true)
-	    && (now.before(toDateCurrentPeriod) == true)) {
-	    logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): Already fired.");
-	    return false;
-	}
-	if (isWithin(now) != true) {
+	if (now.after(fromDateNextPeriod) != true) {
 	    logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): isn't fired.");
 	    return false;
 	}
 	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): fired.");
+	setFromDateNextPeriod(now);
+	logger.log(Log.DEBUG, "isFiredInCurrentPeriod(): fromDateNextPeriod = " 
+		    + sdf.format(fromDateNextPeriod.getTime()));
 	return true;
     }
 
