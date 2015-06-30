@@ -88,15 +88,24 @@ public class ReceiveTransitionsIntentService extends IntentService {
 			if (geoNotification.period.isFiredInCurrentPeriod(now)
 			    == true) {
 			    notifier.notify(geoNotification.notification);
+			    logger.log(Log.ERROR, "check-1");
+			    if (geoNotification.period.isRepeat() == true) {
+				geoNotifications.add(geoNotification);
+				logger.log(Log.ERROR, "check-2");
+			    }
+			} else {
+			    geoNotifications.add(geoNotification);
+			    logger.log(Log.ERROR, "check-3");
 			}
-			geoNotifications.add(geoNotification);
 		    }
 
 		    if (geoNotifications.size() > 0) {
+			logger.log(Log.ERROR, "check-4");
 			List<GeoNotification> reregistrations = 
 				new ArrayList<GeoNotification>();
 			GeofencePlugin.onTransitionReceived(geoNotifications);
 			GeofencePlugin.registar(geoNotifications);
+			logger.log(Log.ERROR, "check-5");
 		    }
 		} else {
 		    logger.log(Log.ERROR, "Geofence transition error: "
