@@ -109,7 +109,7 @@ public class GeofencePlugin extends CordovaPlugin {
     }
 
     public static void registar(List<GeoNotification> notifications) {
-	List<GeoNotification> geoNotifications = new ArrayList<GeoNotification>();
+        Log.d(TAG, "registar(): check-0 : size = " + notifications.size());
 	
 	// Geofence.initialize() が呼び出される前に発火したときは、
         // geoNotificationManager が未初期化で null で本メソッドが
@@ -117,16 +117,13 @@ public class GeofencePlugin extends CordovaPlugin {
 	if (geoNotificationManager == null) {
 	    return;
 	}
+        Log.d(TAG, "registar(): check-1 ");
 
-	for (GeoNotification geoNotification : notifications) {
-	    if (geoNotification.period.isRepeat() == true) {
-		geoNotifications.add(geoNotification);
-	    }
+	if (notifications.size() > 0) {
+	    Log.d(TAG, "registar(): check-2 ");
+	    geoNotificationManager.addGeoNotifications2(notifications);
 	}
-
-	if (geoNotifications.size() > 0) {
-	    geoNotificationManager.addGeoNotifications2(geoNotifications);
-	}
+	Log.d(TAG, "registar(): check-3 ");
     }
 
     private void deviceReady() {
